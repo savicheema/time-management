@@ -1,5 +1,6 @@
 from weakref import WeakKeyDictionary
 from py2neo import Graph, Node, Relationship
+from py2neo.database.status import ConstraintError
 from datetime import datetime
 import os
 import uuid
@@ -9,7 +10,7 @@ url = os.environ.get('GRAPHENEDB_URL', 'http://localhost:7474')
 # username = os.environ.get('NEO4J_USERNAME')
 # password = os.environ.get('NEO4J_PASSWORD')
 
-graph = Graph(url + '/db/data/', username='neo4j', password='neo')
+graph = Graph(url + '/db/data/', user='neo4j', password='neo')
 
 
 class WorkTimeDescriptor(object):
@@ -122,24 +123,36 @@ class User:
 
     def __init__(self, username, **kwargs):
         self.username = username
-        self.name = username
+        self.email = None
         self.password = None
         for key, value in kwargs.items():
             self.__setattr__(key, kwargs.get(key, None))
 
     def find(self):
-        user = graph.find_one('User', 'username', self.username)
+        user = graph.find_one('User', 'email', self.email)
         return user
 
-    def register(self, password):
+    def register(self, email, password, **kwargs):
         password_b = password.encode(encoding='utf-8')
+        self.email = email
         self.password = bcrypt.hashpw(password_b, bcrypt.gensalt())
+        self.name = self.username  # Hack for Neo4j Node label name
         if not self.find():
-            user = Node('User', **self.__dict__)
-            graph.create(user)
-            return True
+            user_node = Node('User', **self.__dict__)
+            try:
+                graph.merge(user_node, 'User', 'email')
+                response = dict(success=True,
+                                message="<p>User <i>{}</i> Registered successfully</p>".format(self.username))
+            except ConstraintError as e:
+                response = dict(success=False,
+                                message="<p>Username <i>{}</i> already exists, choose another username</p>".
+                                format(self.username))
+            else:
+                print("Registration Failed")
+                return dict(success=False, message="Sorry!, Registration Failed")
+            return response
         else:
-            return False
+            return dict(success=True, message="User already exists")
 
     def login(self, password):
         user = self.find()
