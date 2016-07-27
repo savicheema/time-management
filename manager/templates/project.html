@@ -1,0 +1,20 @@
+{% for message in get_flashed_messages() %}
+<div class="alert alert-warning">
+  <button type="button" class="close" data-dismiss="alert">&times;</button>
+  {{ message }}
+</div>
+{% endfor %}
+{% for project in projects %}
+{{ project.project.name }}<br>
+{{ project.project.create_time }} <br>
+
+{{ project.project.description }} <br>
+{% endfor %}
+<form action="{{ url_for('project', user_id='savi@mail.com') }}" method="post">
+  {{ project_form.csrf_token }}
+  {{ project_form.name.label }}{{ project_form.name }} <br>
+  {{ project_form.start_time.label }}{{ project_form.start_time }} <br>
+  {{ project_form.end_time.label }}{{ project_form.end_time }} <br>
+  {{ project_form.description.label }}{{ project_form.description }} <br>
+  <input type="submit" value="Sign Up">
+</form>
