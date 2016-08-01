@@ -1,0 +1,17 @@
+{% for message in get_flashed_messages() %}
+<div class="alert alert-warning">
+  <button type="button" class="close" data-dismiss="alert">&times;</button>
+  {{ message }}
+</div>
+{% endfor %}
+{% for job in jobs %}
+{{ job.job.name }}, {{ job.job.create_time }}, {{ job.job.description }} <br>
+{% endfor %}
+<form action="{{ url_for('job', user_id='savi@mail.com', project_id=project_id) }}" method="post">
+  {{ job_form.csrf_token }}
+  {{ job_form.name.label }}{{ job_form.name }} <br>
+  {{ job_form.start_time.label }}{{ job_form.start_time }} <br>
+  {{ job_form.end_time.label }}{{ job_form.end_time }} <br>
+  {{ job_form.description.label }}{{ job_form.description }} <br>
+  <input type="submit" value="Add Job">
+</form>

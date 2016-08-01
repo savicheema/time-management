@@ -4,6 +4,7 @@ from wtforms.fields.html5 import EmailField
 from wtforms.validators import required
 from datetime import datetime
 
+
 class UserForm(Form):
     username = StringField('Username', [required()])
     email = EmailField('Email', [required()])
@@ -17,6 +18,13 @@ class LoginForm(Form):
 
 class ProjectForm(Form):
     name = StringField('Project Name', [required()])
+    start_time = DateTimeField('Start Time', default=datetime.now(), format="%b/%d/%y::%H:%M:%S")
+    end_time = DateTimeField('End Time', default=datetime.now(), format="%b/%d/%y::%H:%M:%S")
+    description = StringField('Description')
+
+
+class JobForm(Form):
+    name = StringField('Job Name', [required()])
     start_time = DateTimeField('Start Time', default=datetime.now(), format="%b/%d/%y::%H:%M:%S")
     end_time = DateTimeField('End Time', default=datetime.now(), format="%b/%d/%y::%H:%M:%S")
     description = StringField('Description')

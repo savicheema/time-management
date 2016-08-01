@@ -12,13 +12,6 @@ url = os.environ.get('GRAPHENEDB_URL', 'http://localhost:7474')
 
 graph = Graph(url + '/db/data/', user='neo4j', password='neo')
 schema = graph.schema
-# schema = Schema(url + '/db/data/')
-
-
-class TimeManagementSchema():
-    def __init__(self):
-        schema.create_uniqueness_constraint('User', 'username')
-        schema.create_uniqueness_constraint('User', 'email')
 
 
 class WorkTimeDescriptor(object):
@@ -61,8 +54,36 @@ class Job(object):
     create_time = WorkTimeDescriptor()
     end_time = WorkTimeDescriptor()
 
-    def __init__(self):
-        pass
+    def __init__(self, name, id, **kwargs):
+        self.name = name
+        self.id = id
+        self.status = None
+        self.create_time = None
+        self.members = []
+        for key, value in kwargs.items():
+            self.__setattr__(key, kwargs.get(key, None))
+
+    def save(self, project, user, **kwargs):
+        # self.id = str(uuid.uuid4())
+        self.create_time = datetime.now()
+        self.members.append(user.username)
+
+        # Add descriptor attributes like create_time, start_time etc of Project
+        # to Project object dictionary so that they will be added to database
+        for key in Project.__dict__.keys():
+            if isinstance(Project.__dict__[key], WorkTimeDescriptor):
+                try:
+                    self.__dict__[key] = self.__getattribute__(key)
+                except KeyError as e:
+                    # import pdb
+                    # pdb.set_trace()
+                    print(e, key)
+
+        project_object = graph.find_one('Project', 'id', project.id)
+        job_object = Node('Job', **self.__dict__)
+        rel = Relationship(project_object, 'HAS', job_object)
+        graph.create(rel)
+        return job_object, rel
 
 
 # USAGE
@@ -78,21 +99,23 @@ class Project(object):
     # List of Variables used
     # name, status
 
-    def __init__(self, name, **kwargs):
+    def __init__(self, name, id, **kwargs):
         self.name = name
+        self.id = id
         self.status = None
         self.create_time = None
-        self.id = None
         self.members = []
         for key, value in kwargs.items():
             self.__setattr__(key, kwargs.get(key, None))
 
+    def find(self, **kwargs):
+        project_object = graph.find_one('Project', 'id', kwargs.get('id', self.id))
+        return Project(project_object['name'], project_object['id'], **sanitize(project_object, 'name', 'id'))
+
     def save(self, user_object):
-        self.id = str(uuid.uuid4())
+        # self.id = str(uuid.uuid4())
         self.create_time = datetime.now()
         self.members.append(user_object['username'])
-        # project_attribute_list = ['create_time', 'start_time', 'end_time']
-        # [self.__dict__.update(key=) for key]
 
         # Add descriptor attributes like create_time, start_time etc of Project
         # to Project object dictionary so that they will be added to database
@@ -131,7 +154,7 @@ class Project(object):
 def sanitize(dirty_object, *args):
     forbidden_keys = ['SECRET_KEY', 'meta', '_fields', 'csrf_token', '_errors', 'csrf_enabled', '_prefix']
     forbidden_keys += args
-    descriptor_keys = ['start_time', 'create_time', 'end_time']
+    # descriptor_keys = ['start_time', 'create_time', 'end_time']
     object_dict = dict(dirty_object)
 
     for key in forbidden_keys:
@@ -150,10 +173,10 @@ def sanitize(dirty_object, *args):
 # USAGE
 # user = User('name')
 # user.register(), user.login(), user.logout(), user.reset_password()
-# user.projects, user.jobs, user.project(1).jobs, user.job(1).steps
+# user.projects(), user.jobs(), user.project(1).jobs, user.job(1).steps
 # user.add_project(), user.add_job_to_project(), user.add_step_to_job()
 class User:
-    projects = []
+    # projects = []
 
     def __init__(self, email, **kwargs):
         self.username = None
@@ -192,20 +215,25 @@ class User:
     def login(self, password):
         user_object = self.find()
         password_b = password.encode(encoding='utf-8')
-        if user_object and bcrypt.checkpw(password_b, user_object['password'].encode(encoding='utf-8')):
-            return User(user_object['email'], **sanitize(user_object, 'email'))
+        if not user_object:
+            return dict(message="No user, {}, exists".format(self.email), success=False)
+        elif bcrypt.checkpw(password_b, user_object['password'].encode(encoding='utf-8')):
+            user = User(user_object['email'], **sanitize(user_object, 'email'))
+            return dict(success=True, user=user)
         else:
-            return None
+            return dict(message="Incorrect Password", success=False)
 
     def add_project(self, name, **kwargs):
-        project = Project(name, **kwargs)
+        project = Project(name, str(uuid.uuid4()), **kwargs)
         user_object = self.find()
         project_object, relationship_object = project.save(user_object=user_object)
-        return Project(project_object['name'], **sanitize(project_object, 'name'))
+        return Project(project_object['name'], project_object['id'], **sanitize(project_object, 'name', 'id'))
 
-    def get_project(self, **kwargs):
+    # Add filter params in kwargs to select user projects
+    # user.projects(sort='date', create_time='time', start_time=.....)
+    def projects(self, **kwargs):
         query = """
-        MATCH (user:User)-[:WORKS_ON]->(project:Project)
+        MATCH (user:User)-[:WORKS_ON]-(project:Project)
         WHERE user.email = {email}
         RETURN project
         """
@@ -214,8 +242,35 @@ class User:
         # pdb.set_trace()
         return result
 
-    def add_job_to_project(self, name, project_id):
-        pass
+    def has_project(self, project_id):
+        projects = self.projects(all=True)
+        for project in projects:
+            if project['project']['id'] == project_id:
+                return True
+
+        return False
+
+    def add_job_to_project(self, name, project, **kwargs):
+        job = Job(name, str(uuid.uuid4()), **kwargs)
+        project = project.find()
+        user_object = self.find()
+        user = User(user_object['email'], **sanitize(user_object, 'email'))
+
+        if not self.has_project(project.id):
+            return dict(success=False, message="Nigga you ain't working on this project!")
+
+        job_object, relationship_object = job.save(project=project, user=user)
+        job = Job(job_object['name'], job_object['id'], **sanitize(job_object, 'name', 'id'))
+        return dict(success=True, job=job)
+
+    def jobs(self, **kwargs):
+        query = """
+        MATCH (user:User)-[:WORKS_ON]-(project:Project)-[:HAS]-(job:Job)
+        WHERE user.email = {email}
+        RETURN job
+        """
+        result = graph.run(query, email=self.email)
+        return result
 
     def add_step_to_job(self, name, job_id):
         pass
@@ -236,6 +291,8 @@ if __name__=='__main__':
     # print(login_user.email, login_user.username)  #Password not returned
 
     project = user.add_project('first')
-    user.get_project(all=True)
+    user.projects(all=True)
+
+    user.add_job_to_project('first job', project)
     # import pdb
     # pdb.set_trace()

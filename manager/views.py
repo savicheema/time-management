@@ -1,7 +1,7 @@
 from .models import User, Project
 from flask import Flask, request, session, redirect, url_for, render_template, flash
 from flask_bootstrap import Bootstrap
-from .forms import UserForm, ProjectForm, LoginForm
+from .forms import UserForm, ProjectForm, LoginForm, JobForm
 from datetime import datetime
 
 app = Flask(__name__)
@@ -36,8 +36,10 @@ def login():
         password = login_form.password.data
 
         login_user = User(email).login(password)
-        if login_user:
-            return "<p> User {} has successfully logged in!".format(login_user.username)
+        if login_user['success']:
+            return "<p> User {} has successfully logged in!".format(login_user['user'].username)
+        else:
+            flash(login_user['message'])
     return render_template('login.html', login_form=login_form)
 
 
@@ -47,7 +49,7 @@ def project(user_id):
 
     # Fetch all user's projects
     user = User(user_id)
-    projects = user.get_project(all=True)
+    projects = user.projects(all=True)
 
     # make a form submission
     project_form = ProjectForm()
@@ -60,10 +62,31 @@ def project(user_id):
     return render_template('project.html', project_form=project_form, projects=projects)
 
 
+@app.route('/user/<user_id>/project/<project_id>/job/', methods=['GET', 'POST'])
+def job(user_id, project_id):
+    # Login Required
+
+    user = User(user_id)
+    project = Project('dummy', 'id').find(id=project_id)
+    jobs = user.jobs(all=True)
+
+    # make a form submission
+    job_form = JobForm()
+    if job_form.validate_on_submit():
+        job_name = job_form.name.data
+        job_result = user.add_job_to_project(job_name, project, **sanitize(job_form.__dict__, 'name'))
+        if job_result['success']:
+            return "<p>Your have added new job, {}</p>".format(job_result['job'].name)
+        else:
+            flash(job_result['message'])
+
+    return render_template('jobs.html', jobs=jobs, job_form=job_form, project_id=project_id)
+
+
 def sanitize(dirty_object, *args):
     forbidden_keys = ['SECRET_KEY', 'meta', '_fields', 'csrf_token', '_errors', 'csrf_enabled', '_prefix']
     forbidden_keys += args
-    descriptor_keys = ['start_time', 'create_time', 'end_time']
+    # descriptor_keys = ['start_time', 'create_time', 'end_time']
     object_dict = dict(dirty_object)
 
     for key in forbidden_keys:
