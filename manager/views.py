@@ -7,6 +7,10 @@ from datetime import datetime
 app = Flask(__name__)
 Bootstrap(app)
 
+# app.jinja_env.line_statement_prefix = '#'
+# app.jinja_env.line_comment_prefix = '##'
+
+
 
 @app.route('/signup', methods=['GET', 'POST'])
 def sign_up():
@@ -68,7 +72,7 @@ def job(user_id, project_id):
 
     user = User(user_id)
     project = Project('dummy', 'id').find(id=project_id)
-    jobs = user.jobs(all=True)
+    jobs = user.jobs(project_id, all=False)
 
     # make a form submission
     job_form = JobForm()
@@ -81,6 +85,13 @@ def job(user_id, project_id):
             flash(job_result['message'])
 
     return render_template('jobs.html', jobs=jobs, job_form=job_form, project_id=project_id)
+
+
+@app.route('/user/<user_id>/summary', methods=['GET'])
+def summary(user_id):
+    user = User(user_id)
+    summary = user.jobs(all=True).data()
+    return render_template('summary.html', summary=summary)
 
 
 def sanitize(dirty_object, *args):
@@ -100,3 +111,5 @@ def sanitize(dirty_object, *args):
             object_dict[key] = object_dict[key].data
 
     return object_dict
+
+

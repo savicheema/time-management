@@ -1,0 +1,49 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+
+    <link rel="stylesheet" href="## url_for('static', filename='assets/angular-material/angular-material.css') ##">
+</head>
+<body ng-app="MyApp" ng-cloak="">
+<div ng-controller="AppCtrl">
+<md-content class="md-padding">
+    <md-nav-bar md-selected-nav-item="currentNavItem" nav-bar-aria-label="navigation links">
+      <md-nav-item md-nav-click="goto('page1')" name="page1">Summary</md-nav-item>
+      <!--<md-nav-item md-nav-click="goto('page2')" name="page2">Page Two</md-nav-item>-->
+      <!--<md-nav-item md-nav-click="goto('page3')" name="page3">Page Three</md-nav-item>-->
+      <!-- these require actual routing with ui-router or ng-route, so they won't work in the demo
+      <md-nav-item md-nav-sref="app.page4" name="page4">Page Four</md-nav-item>
+      <md-nav-item md-nav-href="#page5" name="page5">Page Five</md-nav-item>
+      -->
+    </md-nav-bar>
+
+    <!-- 1. Project One - End time - list of jobs -->
+    <div layout="column" style="margin-top: 40px; margin-left: 20px;">
+        <div layout="row" ng-repeat="data in summary">
+            <span flex="20">Project {{ $index + 1}}:</span>
+            <span flex="20">{{ data.project.name }}</span>
+            <span flex="30">{{ data.project.create_time }}</span>
+        </div>
+    </div>
+
+</md-content>
+</div>
+<script src="## url_for('static', filename='assets/angular/angular.js') ##"></script>
+<script src="## url_for('static', filename='assets/angular-animate/angular-animate.js') ##"></script>
+<script src="## url_for('static', filename='assets/angular-aria/angular-aria.js') ##"></script>
+<script src="## url_for('static', filename='assets/angular-messages/angular-messages.js') ##"></script>
+<script src="## url_for('static', filename='assets/angular-material/angular-material.js') ##"></script>
+
+<script>
+    var summary = ## summary|tojson|safe ##;
+</script>
+<script src="## url_for('static', filename='js/app.js') ##"></script>
+
+</body>
+</html>

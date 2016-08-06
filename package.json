@@ -1,0 +1,24 @@
+{
+  "name": "time-management",
+  "version": "1.0.0",
+  "description": "time-management using PERT and CPM concepts",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Xavi007/time-management.git"
+  },
+  "keywords": [
+    "time",
+    "managment",
+    "productivity"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Xavi007/time-management/issues"
+  },
+  "homepage": "https://github.com/Xavi007/time-management#readme"
+}

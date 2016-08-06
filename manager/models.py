@@ -263,13 +263,20 @@ class User:
         job = Job(job_object['name'], job_object['id'], **sanitize(job_object, 'name', 'id'))
         return dict(success=True, job=job)
 
-    def jobs(self, **kwargs):
-        query = """
-        MATCH (user:User)-[:WORKS_ON]-(project:Project)-[:HAS]-(job:Job)
-        WHERE user.email = {email}
-        RETURN job
-        """
-        result = graph.run(query, email=self.email)
+    def jobs(self, *args, **kwargs):
+        if kwargs.get('all'):
+            query = """
+            MATCH (user:User)-[:WORKS_ON]-(project:Project)-[:HAS]-(job:Job)
+            WHERE user.email = {email}
+            RETURN job, project
+            """
+        else:
+            query = """
+            MATCH (user:User)-[:WORKS_ON]-(project:Project)-[:HAS]-(job:Job)
+            WHERE user.email = {email} and project.id IN {projects}
+            RETURN job, project
+            """
+        result = graph.run(query, email=self.email, projects=args)
         return result
 
     def add_step_to_job(self, name, job_id):
