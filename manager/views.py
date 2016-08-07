@@ -80,7 +80,7 @@ def job(user_id, project_id):
         job_name = job_form.name.data
         job_result = user.add_job_to_project(job_name, project, **sanitize(job_form.__dict__, 'name'))
         if job_result['success']:
-            return "<p>Your have added new job, {}</p>".format(job_result['job'].name)
+            flash("Your have added new job, {}".format(job_result['job'].name))
         else:
             flash(job_result['message'])
 

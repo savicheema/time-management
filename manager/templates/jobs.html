@@ -5,7 +5,7 @@
 </div>
 #% endfor %#
 #% for job in jobs %#
-## job.job.name ##, ## job.job.create_time ##, ## job.job.description ## <br>
+## job.job.name ##, ## job.job.start_time ##, ## job.job.description ## <br>
 #% endfor %#
 <form action="## url_for('job', user_id=user_id, project_id=project_id) ##" method="post">
   ## job_form.csrf_token ##
