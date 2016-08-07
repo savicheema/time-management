@@ -7,7 +7,7 @@
 #% for job in jobs %#
 ## job.job.name ##, ## job.job.create_time ##, ## job.job.description ## <br>
 #% endfor %#
-<form action="## url_for('job', user_id='savi@mail.com', project_id=project_id) ##" method="post">
+<form action="## url_for('job', user_id=user_id, project_id=project_id) ##" method="post">
   ## job_form.csrf_token ##
   ## job_form.name.label ## ## job_form.name ## <br>
   ## job_form.start_time.label ## ## job_form.start_time ## <br>

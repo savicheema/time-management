@@ -59,11 +59,11 @@ def project(user_id):
     project_form = ProjectForm()
     if project_form.validate_on_submit():
         project_name = project_form.name.data
-        project_result = user.add_project(project_name, **sanitize(project_form.__dict__, 'name'))
+        project_result = user.add_project(project_name, **sanitize(project_form.__dict__, 'name', 'email'))
         if project_result:
             return "<p> You have added a new project, {}".format(project_result.name)
 
-    return render_template('project.html', project_form=project_form, projects=projects)
+    return render_template('project.html', project_form=project_form, projects=projects, user_id=user_id)
 
 
 @app.route('/user/<user_id>/project/<project_id>/job/', methods=['GET', 'POST'])
@@ -84,7 +84,7 @@ def job(user_id, project_id):
         else:
             flash(job_result['message'])
 
-    return render_template('jobs.html', jobs=jobs, job_form=job_form, project_id=project_id)
+    return render_template('jobs.html', jobs=jobs, job_form=job_form, project_id=project_id, user_id=user_id)
 
 
 @app.route('/user/<user_id>/summary', methods=['GET'])

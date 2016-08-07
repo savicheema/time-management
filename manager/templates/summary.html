@@ -33,7 +33,7 @@
 
     <!-- 1. Project One - End time - list of jobs -->
     <div layout="column" style="margin-top: 40px; margin-left: 20px;">
-        <div layout="row" ng-repeat="data in summary">
+        <div layout="row" ng-repeat="data in summary" ng-show="summary.length">
             <div flex="20">Project {{ $index + 1}}:
             <md-button class="md-fab md-mini" aria-label="Go To Project" ng-click="GoToProject('## url_for('job', user_id=user_id, project_id='projectid') ##', data.project.id)">
                     <md-icon></md-icon>
@@ -41,6 +41,9 @@
             </div>
             <div flex="20">{{ data.project.name }}</div>
             <div flex="30">{{ data.project.create_time }}</div>
+        </div>
+        <div ng-show="!summary.length">
+            <md-button class="md-primary" ng-href="## url_for('project', user_id=user_id) ##">Create Project</md-button>
         </div>
     </div>
 
