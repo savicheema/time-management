@@ -199,15 +199,13 @@ class User:
             user_node = Node('User', **self.__dict__)
             try:
                 graph.merge(user_node, 'User', 'email')
-                response = dict(success=True,
-                                message="<p>User <i>{}</i> Registered successfully</p>".format(self.username))
             except ConstraintError as e:
                 response = dict(success=False,
                                 message="<p>Username <i>{}</i> already exists, choose another username</p>".
                                 format(self.username))
             else:
-                print("Registration Failed")
-                return dict(success=False, message="Sorry!, Registration Failed")
+                response = dict(success=True,
+                                message="<p>User <i>{}</i> Registered successfully</p>".format(self.username))
             return response
         else:
             return dict(success=True, message="User already exists")

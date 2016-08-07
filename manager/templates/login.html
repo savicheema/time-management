@@ -1,12 +1,12 @@
-{% for message in get_flashed_messages() %}
+#% for message in get_flashed_messages() %#
 <div class="alert alert-warning">
   <button type="button" class="close" data-dismiss="alert">&times;</button>
-  {{ message }}
+  ## message ##
 </div>
-{% endfor %}
-<form action="{{ url_for('login') }}" method="post">
-  {{ login_form.csrf_token }}
-  {{ login_form.email.label }}{{ login_form.email }} <br>
-  {{ login_form.password.label }}{{ login_form.password }}
+#% endfor %#
+<form action="## url_for('login') ##" method="post">
+  ## login_form.csrf_token ##
+  ## login_form.email.label ## ## login_form.email ## <br>
+  ## login_form.password.label ## ## login_form.password ##
   <input type="submit" value="Log In">
 </form>

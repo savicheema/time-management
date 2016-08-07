@@ -11,6 +11,14 @@
     <link rel="stylesheet" href="## url_for('static', filename='assets/angular-material/angular-material.css') ##">
 </head>
 <body ng-app="MyApp" ng-cloak="">
+#% for message in get_flashed_messages() %#
+<div class="alert alert-warning">
+  <button type="button" class="close" data-dismiss="alert">&times;</button>
+  ## message ##
+</div>
+#% endfor %#
+
+
 <div ng-controller="AppCtrl">
 <md-content class="md-padding">
     <md-nav-bar md-selected-nav-item="currentNavItem" nav-bar-aria-label="navigation links">
@@ -26,9 +34,13 @@
     <!-- 1. Project One - End time - list of jobs -->
     <div layout="column" style="margin-top: 40px; margin-left: 20px;">
         <div layout="row" ng-repeat="data in summary">
-            <span flex="20">Project {{ $index + 1}}:</span>
-            <span flex="20">{{ data.project.name }}</span>
-            <span flex="30">{{ data.project.create_time }}</span>
+            <div flex="20">Project {{ $index + 1}}:
+            <md-button class="md-fab md-mini" aria-label="Go To Project" ng-click="GoToProject('## url_for('job', user_id=user_id, project_id='projectid') ##', data.project.id)">
+                    <md-icon></md-icon>
+                </md-button>
+            </div>
+            <div flex="20">{{ data.project.name }}</div>
+            <div flex="30">{{ data.project.create_time }}</div>
         </div>
     </div>
 

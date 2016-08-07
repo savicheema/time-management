@@ -20,7 +20,7 @@ def sign_up():
         email = user_form.email.data
         password = user_form.password.data
         # print(user_form.__dict__['_fields'])
-        user_register = User(username).register(email, password)
+        user_register = User(email).register(username, password)
         if user_register['success']:
             return user_register['message'], 200
         else:
@@ -41,7 +41,7 @@ def login():
 
         login_user = User(email).login(password)
         if login_user['success']:
-            return "<p> User {} has successfully logged in!".format(login_user['user'].username)
+            return redirect(url_for('summary', user_id=login_user['user'].email), 301)
         else:
             flash(login_user['message'])
     return render_template('login.html', login_form=login_form)
@@ -90,8 +90,9 @@ def job(user_id, project_id):
 @app.route('/user/<user_id>/summary', methods=['GET'])
 def summary(user_id):
     user = User(user_id)
+    flash("<p> User {} has successfully logged in!".format(user.email))
     summary = user.jobs(all=True).data()
-    return render_template('summary.html', summary=summary)
+    return render_template('summary.html', summary=summary,user_id=user_id)
 
 
 def sanitize(dirty_object, *args):
