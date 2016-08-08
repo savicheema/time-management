@@ -9,6 +9,9 @@
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 
     <link rel="stylesheet" href="## url_for('static', filename='assets/angular-material/angular-material.css') ##">
+    <style>
+        .md-button.adjust {margin-top: -8px;}
+    </style>
 </head>
 <body ng-app="MyApp" ng-cloak="">
 #% for message in get_flashed_messages() %#
@@ -38,11 +41,9 @@
             <!--<div flex="20"></div>-->
             <div flex="20">{{ data.project.name }}</div>
             <div flex="30">{{ data.job.start_time }}<->{{ data.job.end_time}}</div>
-            <div flex="20">
-                <md-button class="md-fab md-mini" aria-label="Go To Project" ng-click="GoToProject('## url_for('job', user_id=user_id, project_id='projectid') ##', data.project.id)">
-                    <md-icon></md-icon>
-                </md-button>
-            </div>
+            <md-button md-no-ink class="md-primary adjust" ng-click="GoToProject('## url_for('job', user_id=user_id, project_id='projectid') ##', data.project.id)">
+                Go To Project
+            </md-button>
         </div>
         <div layout="row">
             <md-button class="md-primary" ng-href="## url_for('project', user_id=user_id) ##">Create Project</md-button>

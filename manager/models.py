@@ -227,6 +227,16 @@ class User:
         project_object, relationship_object = project.save(user_object=user_object)
         return Project(project_object['name'], project_object['id'], **sanitize(project_object, 'name', 'id'))
 
+    def add_project_by_name(self, name, **kwargs):
+        projects = self.projects()
+        new_project = True
+        for data in projects:
+            if name == data['project']['name']:
+                print("Project already exists")
+                return Project('dummy', data['project']['id'])
+
+        return self.add_project(name, **kwargs)
+
     # Add filter params in kwargs to select user projects
     # user.projects(sort='date', create_time='time', start_time=.....)
     def projects(self, **kwargs):
@@ -292,7 +302,7 @@ class User:
 if __name__=='__main__':
     user = User('savi@mail.com')
     user.register('username', 'password')
-    login_user = user.login('password')
+    login_object = user.login('password')
     # print(login_user.email, login_user.username)  #Password not returned
 
     project = user.add_project('first')

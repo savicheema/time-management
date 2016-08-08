@@ -39,11 +39,11 @@ def login():
         email = login_form.email.data
         password = login_form.password.data
 
-        login_user = User(email).login(password)
-        if login_user['success']:
-            return redirect(url_for('summary', user_id=login_user['user'].email), 301)
+        login_object = User(email).login(password)
+        if login_object['success']:
+            return redirect(url_for('summary', user_id=login_object['user'].email), 301)
         else:
-            flash(login_user['message'])
+            flash(login_object['message'])
     return render_template('login.html', login_form=login_form)
 
 
