@@ -37,9 +37,9 @@
     <!-- 1. Project One - End time - list of jobs -->
     <div layout="column" style="margin-top: 40px; margin-left: 20px;">
         <div layout="row" ng-repeat="data in summary" ng-show="summary.length">
-            <div flex="30">{{ $index + 1}}. {{ data.job.name }}</div>
+            <div flex="25">{{ $index + 1}}. {{ data.project.name }}</div>
             <!--<div flex="20"></div>-->
-            <div flex="20">{{ data.project.name }}</div>
+            <div flex="25">{{ data.job.name }}</div>
             <div flex="30">{{ data.job.start_time }}<->{{ data.job.end_time}}</div>
             <md-button md-no-ink class="md-primary adjust" ng-click="GoToProject('## url_for('job', user_id=user_id, project_id='projectid') ##', data.project.id)">
                 Go To Project

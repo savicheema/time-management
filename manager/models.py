@@ -5,6 +5,7 @@ from datetime import datetime
 import os
 import uuid
 import bcrypt
+import sys
 
 url = os.environ.get('GRAPHENEDB_URL', 'http://localhost:7474')
 # username = os.environ.get('NEO4J_USERNAME')
@@ -85,6 +86,13 @@ class Job(object):
         graph.create(rel)
         return job_object, rel
 
+    def delete(self):
+        query = """
+        MATCH(job:Job) WHERE job.id = {job_id}
+        DETACH DELETE job;
+        """
+        return graph.run(query, job_id=self.id)
+
 
 # USAGE
 # p = Project(project_id)
@@ -133,6 +141,14 @@ class Project(object):
         rel = Relationship(user_object, 'WORKS_ON', project)
         graph.create(rel)
         return project, rel
+
+    def delete(self):
+        query = """
+        MATCH(project:Project) WHERE project.id = {project_id}
+        OPTIONAL MATCH (project)-[:HAS]-(job)
+        DETACH DELETE project, job;
+        """
+        return graph.run(query, project_id=self.id)
 
     def start(self):
         self.status = 'active'
@@ -229,7 +245,6 @@ class User:
 
     def add_project_by_name(self, name, **kwargs):
         projects = self.projects()
-        new_project = True
         for data in projects:
             if name == data['project']['name']:
                 print("Project already exists")
@@ -257,6 +272,18 @@ class User:
                 return True
 
         return False
+
+    def delete_project(self, project_id):
+        if self.has_project(project_id):
+            try:
+                Project('dummy', project_id).find().delete()
+            except Exception:
+                # Log exceptions in logfiles
+                raise Exception
+            else:
+                return dict(success=True, message='project, {}, is deleted successfully'.format(project_id))
+        else:
+            return dict(success=False, message='Project, {}, does not belong to you'.format(project_id))
 
     def add_job_to_project(self, name, project, **kwargs):
         job = Job(name, str(uuid.uuid4()), **kwargs)
@@ -306,8 +333,15 @@ if __name__=='__main__':
     # print(login_user.email, login_user.username)  #Password not returned
 
     project = user.add_project('first')
-    user.projects(all=True)
+    # user.projects(all=True)
 
     user.add_job_to_project('first job', project)
+    
+    ## project deletion code
+    if len(sys.argv) > 1 and sys.argv[1]:
+      delete_response = user.delete_project(project.id)
+      print(delete_response['message'])
+    else:
+      print("Project deletion not required")
     # import pdb
     # pdb.set_trace()
