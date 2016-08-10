@@ -79,12 +79,11 @@ def job(user_id, project_id):
     if job_form.validate_on_submit():
         job_name = job_form.name.data
         job_result = user.add_job_to_project(job_name, project, **sanitize(job_form.__dict__, 'name'))
-        if job_result['success']:
-            flash("Your have added new job, {}".format(job_result['job'].name))
-        else:
+        if not job_result['success']:
             flash(job_result['message'])
-
-    return render_template('jobs.html', jobs=jobs, job_form=job_form, project_id=project_id, user_id=user_id)
+        else:
+            flash("Your have added new job, {}".format(job_result['job'].name))
+    return render_template('jobs.html', jobs=jobs, job_form=job_form, project=project, user_id=user_id)
 
 
 @app.route('/user/<user_id>/summary', methods=['GET'])
