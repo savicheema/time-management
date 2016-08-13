@@ -41,8 +41,19 @@ class Step(object):
     create_time = WorkTimeDescriptor()
     end_time = WorkTimeDescriptor()
 
+    time_keys = ['start_time', 'create_time', 'end_time']
     def __init__(self):
-        pass
+        self.name = name
+        self.id = id
+        self.status = None
+        self.create_time = None
+        self.members = []
+        for key, value in kwargs.items():
+            if key in self.time_keys and isinstance(value, str):
+                val = datetime.strptime(value, WorkTimeDescriptor.formatter)
+            else:
+                val = kwargs.get(key, None)
+            self.__setattr__(key, val)
 
 
 # USAGE
@@ -55,6 +66,7 @@ class Job(object):
     create_time = WorkTimeDescriptor()
     end_time = WorkTimeDescriptor()
 
+    time_keys = ['start_time', 'create_time', 'end_time']
     def __init__(self, name, id, **kwargs):
         self.name = name
         self.id = id
@@ -62,7 +74,15 @@ class Job(object):
         self.create_time = None
         self.members = []
         for key, value in kwargs.items():
-            self.__setattr__(key, kwargs.get(key, None))
+            if key in self.time_keys and isinstance(value, str):
+                val = datetime.strptime(value, WorkTimeDescriptor.formatter)
+            else:
+                val = kwargs.get(key, None)
+            self.__setattr__(key, val)
+
+    def find(self, **kwargs):
+        job_object = graph.find_one('Job', 'id', kwargs.get('id', self.id))
+        return Job(job_object['name'], job_object['id'], **sanitize(job_object, 'name', 'id'))
 
     def save(self, project, user, **kwargs):
         # self.id = str(uuid.uuid4())
@@ -96,7 +116,7 @@ class Job(object):
 
 # USAGE
 # p = Project(project_id)
-# p.start(), p.stop(), p.complete(), p.suspend()
+# p.start(), p.stop(), p.complete(), p.suspend(), p.delete()
 # p.jobs, p.job(1).steps, p.start_time etc.
 # p.add_jobs(), p.add_step_to_job()
 class Project(object):
@@ -104,6 +124,7 @@ class Project(object):
     create_time = WorkTimeDescriptor()
     end_time = WorkTimeDescriptor()
 
+    time_keys = ['start_time', 'create_time', 'end_time']
     # List of Variables used
     # name, status
 
@@ -114,7 +135,11 @@ class Project(object):
         self.create_time = None
         self.members = []
         for key, value in kwargs.items():
-            self.__setattr__(key, kwargs.get(key, None))
+            if key in self.time_keys and isinstance(value, str):
+                val = datetime.strptime(value, WorkTimeDescriptor.formatter)
+            else:
+                val = kwargs.get(key, None)
+            self.__setattr__(key, val)
 
     def find(self, **kwargs):
         project_object = graph.find_one('Project', 'id', kwargs.get('id', self.id))
@@ -135,9 +160,8 @@ class Project(object):
                     # import pdb
                     # pdb.set_trace()
                     print(e, key)
+
         project = Node('Project', **self.__dict__)
-        # import pdb
-        # pdb.set_trace()
         rel = Relationship(user_object, 'WORKS_ON', project)
         graph.create(rel)
         return project, rel
@@ -191,6 +215,7 @@ def sanitize(dirty_object, *args):
 # user.register(), user.login(), user.logout(), user.reset_password()
 # user.projects(), user.jobs(), user.project(1).jobs, user.job(1).steps
 # user.add_project(), user.add_job_to_project(), user.add_step_to_job()
+# user.delete_project(1), user.delete_job(1)
 class User:
     # projects = []
 
@@ -281,7 +306,7 @@ class User:
                 # Log exceptions in logfiles
                 raise Exception
             else:
-                return dict(success=True, message='project, {}, is deleted successfully'.format(project_id))
+                return dict(success=True, message='Project, {}, is deleted successfully'.format(project_id))
         else:
             return dict(success=False, message='Project, {}, does not belong to you'.format(project_id))
 
@@ -314,6 +339,26 @@ class User:
         result = graph.run(query, email=self.email, projects=args)
         return result
 
+    def has_job(self, job_id):
+        jobs = self.jobs(all=True)
+        for job in jobs:
+            if job['job']['id'] == job_id:
+                return True
+
+        return False
+
+    def delete_job(self, job_id):
+        if self.has_job(job_id):
+            try:
+                Job('dummy', job_id).find().delete()
+            except Exception:
+                # Log exceptions in logfiles
+                raise Exception
+            else:
+                return dict(success=True, message='Job, {}, is deleted successfully'.format(job_id))
+        else:
+            return dict(success=False, message='Job, {}, does not belong to you'.format(job_id))
+
     def add_step_to_job(self, name, job_id):
         pass
 
@@ -335,13 +380,20 @@ if __name__=='__main__':
     project = user.add_project('first')
     # user.projects(all=True)
 
-    user.add_job_to_project('first job', project)
+    job_object = user.add_job_to_project('first job', project)
     
     ## project deletion code
-    if len(sys.argv) > 1 and sys.argv[1]:
+    if len(sys.argv) > 1 and sys.argv[1]=='project':
       delete_response = user.delete_project(project.id)
       print(delete_response['message'])
     else:
       print("Project deletion not required")
+
+    ## job deletion code
+    if len(sys.argv) > 1 and sys.argv[1]=='job' and job_object['success']:
+      delete_response = user.delete_job(job_object['job'].id)
+      print(delete_response['message'])
+    else:
+      print("Job deletion not required")
     # import pdb
     # pdb.set_trace()

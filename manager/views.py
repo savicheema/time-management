@@ -11,6 +11,10 @@ Bootstrap(app)
 # app.jinja_env.line_comment_prefix = '##'
 
 
+@app.route('/', methods=['GET'])
+def index():
+    return redirect(url_for('summary', user_id='savitoj.cheema@gmail.com'), 301)
+
 
 @app.route('/signup', methods=['GET', 'POST'])
 def sign_up():
@@ -61,9 +65,12 @@ def project(user_id):
         project_name = project_form.name.data
         project_result = user.add_project(project_name, **sanitize(project_form.__dict__, 'name', 'email'))
         if project_result:
-            return "<p> You have added a new project, {}".format(project_result.name)
+            return "<p> You have added a new project, [{}]".format(project_result.name)
 
     return render_template('project.html', project_form=project_form, projects=projects, user_id=user_id)
+
+
+# @app.route('/user/<user_id>/project/<project_id>/delete', methods=[''])
 
 
 @app.route('/user/<user_id>/project/<project_id>/job/', methods=['GET', 'POST'])
@@ -74,6 +81,8 @@ def job(user_id, project_id):
     project = Project('dummy', 'id').find(id=project_id)
     jobs = user.jobs(project_id, all=False)
 
+    # import pdb
+    # pdb.set_trace()
     # make a form submission
     job_form = JobForm()
     if job_form.validate_on_submit():
@@ -82,7 +91,7 @@ def job(user_id, project_id):
         if not job_result['success']:
             flash(job_result['message'])
         else:
-            flash("Your have added new job, {}".format(job_result['job'].name))
+            flash("Your have added new job, [{}]".format(job_result['job'].name))
     return render_template('jobs.html', jobs=jobs, job_form=job_form, project=project, user_id=user_id)
 
 

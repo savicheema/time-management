@@ -1,13 +1,26 @@
 <h3>## project.name ##</h3>
+
+<b>Create Time:</b><span>## project.create_time ## &nbsp </span>
+<b>Start Time:</b><span>## project.start_time ## &nbsp </span>
+<b>End Time:</b><span>## project.end_time ## &nbsp </span>
+<a href="## url_for('index') ##">Go Home</a>
+<br><br>
+
 #% for message in get_flashed_messages() %#
 <div class="alert alert-warning">
   <button type="button" class="close" data-dismiss="alert">&times;</button>
   ## message ##
 </div>
 #% endfor %#
+<br>
+<div style="width: 50%; float:left;">
 #% for job in jobs %#
-## job.job.name ##, ## job.job.start_time ##, ## job.job.description ## <br>
+<div>
+## job.job.name ##, ## job.job.start_time ##<br>
+## job.job.description ##
+</div><br>
 #% endfor %#
+</div>
 <form action="## url_for('job', user_id=user_id, project_id=project.id) ##" method="post">
   ## job_form.csrf_token ##
   ## job_form.name.label ## ## job_form.name ## <br>

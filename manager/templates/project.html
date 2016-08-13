@@ -1,12 +1,20 @@
+<h3>My Projects</h3>
 #% for message in get_flashed_messages() %#
 <div class="alert alert-warning">
   <button type="button" class="close" data-dismiss="alert">&times;</button>
   ## message ##
 </div>
 #% endfor %#
+<br>
+<div style="width: 50%; float:left;">
 #% for project in projects %#
-## project.project.name ##, ## project.project.create_time ##, ## project.project.description ##, <a href="## url_for('job', user_id=user_id, project_id=project.project.id) ##">Go to Project</a> <br>
+<div>
+## project.project.name ##, ## project.project.create_time ##<br>
+## project.project.description ##<br>
+<a href="## url_for('job', user_id=user_id, project_id=project.project.id) ##">Go to Project</a> <br>
+</div><br>
 #% endfor %#
+</div>
 <form action="## url_for('project', user_id=user_id) ##" method="post">
   ## project_form.csrf_token ##
   ## project_form.name.label ## ## project_form.name ## <br>
